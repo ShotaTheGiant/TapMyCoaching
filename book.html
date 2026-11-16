@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mykhailo Volkov – Combat Training Bookings</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f4f1ec;--surface:#fff;--text:#16130f;--muted:#6b645a;--line:#ddd6ca;--accent:#c8201a;--accent-t:#fff;--dark:#16130f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f0e0c;--surface:#1a1816;--text:#f2ede4;--muted:#9a9285;--line:#2e2a25;--accent:#e0352d;--accent-t:#fff;--dark:#000}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0f0e0c;--surface:#1a1816;--text:#f2ede4;--muted:#9a9285;--line:#2e2a25;--accent:#e0352d;--accent-t:#fff;--dark:#000}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 "Helvetica Neue",Arial,sans-serif}
+h1,h2,h3{font-family:Impact,"Arial Narrow Bold","Arial Black",sans-serif;text-transform:uppercase;letter-spacing:.02em;font-weight:400;margin:0}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px}
+header.hero{background:var(--dark);color:var(--hero-t,#f2ede4);padding:64px 0 56px;border-bottom:6px solid var(--accent)}
+.hero small{letter-spacing:.2em;text-transform:uppercase;color:var(--hero-t,#b9b0a1);opacity:.7;font-size:12px}
+.hero h1{font-size:clamp(44px,10vw,92px);line-height:.95;margin:14px 0 18px}
+.hero h1 span{color:var(--accent)}
+.hero p{max-width:520px;color:var(--hero-t,#cfc7b9);opacity:.85;margin:0 0 26px}
+.btn{display:inline-block;background:var(--accent);color:var(--accent-t);border:0;padding:14px 26px;font:inherit;font-weight:700;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;border-radius:3px;text-decoration:none}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+section{padding:48px 0 8px}
+h2{font-size:32px;margin-bottom:6px}
+.sub{color:var(--muted);margin:0 0 20px}
+.step{display:inline-block;background:var(--accent);color:var(--accent-t);font:700 12px/1 Arial;padding:5px 8px;border-radius:2px;margin-right:8px;vertical-align:middle;letter-spacing:.05em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:4px;padding:16px;text-align:left;cursor:pointer;color:var(--text);font:inherit}
+.card h3{font-size:22px;margin-bottom:4px}
+.card p{margin:0;font-size:14px;color:var(--muted)}
+.card[aria-pressed="true"],.slot[aria-pressed="true"],.day[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.days{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}
+.day{flex:0 0 68px;background:var(--surface);border:2px solid var(--line);border-radius:4px;padding:10px 0;text-align:center;cursor:pointer;color:var(--text);font:inherit}
+.day b{display:block;font-size:22px}.day span{font-size:12px;color:var(--muted);text-transform:uppercase}
+.day:disabled{opacity:.35;cursor:not-allowed}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.slot{background:var(--surface);border:2px solid var(--line);border-radius:4px;padding:12px 0;font:inherit;font-weight:700;cursor:pointer;color:var(--text)}
+.slot:disabled{text-decoration:line-through;opacity:.35;cursor:not-allowed}
+.form{display:grid;gap:12px;max-width:480px}
+label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+input,textarea{width:100%;margin-top:4px;padding:12px;border:2px solid var(--line);border-radius:3px;background:var(--surface);color:var(--text);font:inherit}
+input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+.summary{background:var(--surface);border-left:5px solid var(--accent);padding:14px 16px;margin:18px 0;max-width:480px}
+.summary div{display:flex;justify-content:space-between;padding:3px 0;gap:12px}
+.summary span{color:var(--muted)}
+.ok{background:var(--surface);border:2px solid var(--accent);padding:28px;border-radius:4px;max-width:480px}
+.ok h2{color:var(--accent)}
+.hidden{display:none}
+.err{color:var(--accent);font-size:14px;min-height:20px}
+.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;padding:20px 0 0;color:var(--muted);font-size:14px}
+.about{display:grid;grid-template-columns:1fr;gap:24px}
+.about p{margin:0 0 12px;max-width:560px}
+.medals{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:8px}
+.medal{background:var(--surface);border:2px solid var(--line);border-top:4px solid var(--accent);border-radius:4px;padding:14px}
+.medal b{display:block;font-family:Impact,"Arial Narrow Bold",sans-serif;font-weight:400;font-size:26px;text-transform:uppercase;line-height:1.1}
+.medal span{color:var(--muted);font-size:14px}
+.flags{font-size:22px;letter-spacing:.2em}
+#lang{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;z-index:50;display:flex;background:#16130f;border:1px solid #4a443b;border-radius:999px;padding:3px}
+#lang button{background:transparent;color:#f2ede4;border:0;padding:6px 12px;border-radius:999px;font:700 12px/1 Arial,sans-serif;letter-spacing:.08em;cursor:pointer}
+#lang button[aria-pressed="true"]{background:var(--accent);color:#fff}
+footer{margin-top:56px;padding:28px 0 36px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div id="lang" role="group" aria-label="Language"><button data-l="en" aria-pressed="true">EN</button><button data-l="bg" aria-pressed="false">BG</button></div>
+<header class="hero"><div class="wrap">
+<small>Private &amp; small-group coaching</small>
+<h1>Train with<br><span id="siteName"></span></h1>
+<p id="tagline"></p>
+<a class="btn" href="#book">Book a session</a> <a class="btn" style="background:transparent;border:2px solid var(--hero-t,#f2ede4)" href="#about">About the coach</a>
+</div></header>
+
+<main class="wrap" id="book">
+<section id="about"><h2>About the coach</h2><div class="about"><div><div id="bio"></div><p><a class="btn igl" href="#" target="_blank" rel="noopener">Follow on Instagram</a></p></div><div class="medals" id="medals"></div></div></section>
+
+<section>
+<h2><span class="step">1</span>Discipline</h2><p class="sub">What do you want to work on?</p>
+<div class="grid" id="disc"></div>
+</section>
+
+<section>
+<h2><span class="step">2</span>Date</h2><p class="sub">Closed days are greyed out.</p>
+<div class="days" id="days"></div>
+</section>
+
+<section>
+<h2><span class="step">3</span>Hour</h2><p class="sub" id="slotHint">Choose a date first.</p>
+<div class="slots" id="slots"></div>
+</section>
+
+<section id="details">
+<h2><span class="step">4</span>Your details</h2><p class="sub">So the coach can confirm your session.</p>
+<div class="form">
+<div><label for="name">Full name *</label><input id="name" autocomplete="name"></div>
+<div><label for="phone">Phone number *</label><input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+359 …" required></div>
+<div><label for="insta">Instagram (optional)</label><input id="insta" autocomplete="off" placeholder="@username"></div>
+<div><label for="note">Experience / notes (optional)</label><textarea id="note" rows="3" placeholder="Beginner, injuries, goals…"></textarea></div>
+</div>
+<div class="summary hidden" id="sum"></div>
+<div class="err" id="err" role="alert"></div>
+<button class="btn" id="go">Confirm booking</button>
+<div class="ok hidden" id="ok"></div>
+</section>
+
+<div class="info" id="info"></div>
+</main>
+<footer><div class="wrap">© <span id="fname"></span> · Combat training · <a class="igl" href="#" target="_blank" rel="noopener" style="color:inherit">Instagram</a></div></footer>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getFirestore,collection,doc,writeBatch,onSnapshot,serverTimestamp,getDoc} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+const fdb=getFirestore(initializeApp({apiKey:"AIzaSyCtprYxyUHH3mh3rU2hXxdl4E5y-3sccLk",authDomain:"tapmymenu-c411b.firebaseapp.com",projectId:"tapmymenu-c411b",storageBucket:"tapmymenu-c411b.firebasestorage.app",messagingSenderId:"87565740314",appId:"1:87565740314:web:34a91e0b64af026e90a4a3"}));
+const slug=new URLSearchParams(location.search).get('c')||'';
+let SITE=null;
+let SERR='';
+try{const sd=await getDoc(doc(fdb,'sites',slug));if(sd.exists())SITE=sd.data()}catch(e){SERR=e.code||e.message}
+if(!SITE){document.body.innerHTML='<p style="padding:40px;font-family:Arial">Booking site not found.<br><small style="opacity:.6">Site id: "'+slug.replace(/[<>&]/g,'')+'"'+(SERR?' · '+SERR:'')+'</small></p>';throw new Error('no site')}
+let DISC=[
+ {id:'MMA',d:'Striking, takedowns and cage work.'},
+ {id:'BJJ',d:'Gi and no-gi ground game, guard and submissions.'},
+ {id:'Grappling',d:'Wrestling-based control, scrambles and finishes.'},
+ {id:'Conditioning',d:'Strength, cardio and fight-ready endurance.'}];
+let HOURS=[9,10,11,12,16,17,18,19,20];
+const st={disc:null,date:null,hour:null};
+let saved={};
+onSnapshot(collection(fdb,'sites',slug,'slots'),snap=>{saved={};snap.forEach(d=>{const x=d.data();(saved[x.date]=saved[x.date]||[]).push(x.hour)});renderSlots()},()=>{});
+const $=id=>document.getElementById(id);
+const key=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function taken(k,h){
+ if((saved[k]||[]).includes(h))return true;
+ let n=0;for(const c of k+h)n=(n*31+c.charCodeAt(0))%97;return n%4===0;
+}
+function hourOk(k,h){
+ const d=new Date(k+'T00:00');
+ 
+ const now=new Date();
+ if(key(now)===k&&h<=now.getHours())return false;
+ return true;
+}
+const fmt=h=>String(h).padStart(2,'0')+':00';
+function renderDisc(){
+ $('disc').innerHTML='';
+ DISC.forEach(x=>{
+  const b=document.createElement('button');b.className='card';b.setAttribute('aria-pressed',st.disc===x.id);
+  b.innerHTML='<h3>'+T(x.id)+'</h3><p>'+T(x.d)+'</p>';
+  b.onclick=()=>{st.disc=x.id;renderDisc();sum()};$('disc').appendChild(b);
+ });
+}
+function renderDays(){
+ $('days').innerHTML='';
+ const t=new Date();
+ for(let i=0;i<21;i++){
+  const d=new Date(t.getFullYear(),t.getMonth(),t.getDate()+i);
+  const k=key(d);
+  const b=document.createElement('button');b.className='day';
+  b.disabled=(SITE.closedDays||[0]).includes(d.getDay());
+  b.setAttribute('aria-pressed',st.date===k);
+  b.innerHTML='<span>'+d.toLocaleDateString(LOC(),{weekday:'short'})+'</span><b>'+d.getDate()+'</b><span>'+d.toLocaleDateString(LOC(),{month:'short'})+'</span>';
+  b.onclick=()=>{st.date=k;st.hour=null;renderDays();renderSlots();sum()};
+  $('days').appendChild(b);
+ }
+}
+function renderSlots(){
+ const box=$('slots');box.innerHTML='';
+ if(!st.date){$('slotHint').textContent=T('Choose a date first.');return}
+ $('slotHint').textContent=T('Available hours for ')+new Date(st.date+'T00:00').toLocaleDateString(LOC(),{weekday:'long',day:'numeric',month:'long'})+T('. Crossed-out hours are taken.');
+ HOURS.filter(h=>hourOk(st.date,h)||true).forEach(h=>{
+  const b=document.createElement('button');b.className='slot';b.textContent=fmt(h);
+  const off=!hourOk(st.date,h)||taken(st.date,h);
+  b.disabled=off;b.setAttribute('aria-pressed',st.hour===h);
+  b.onclick=()=>{st.hour=h;renderSlots();sum()};
+  box.appendChild(b);
+ });
+}
+function label(){return new Date(st.date+'T00:00').toLocaleDateString(LOC(),{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+function sum(){
+ const s=$('sum');
+ if(!st.disc&&!st.date&&st.hour===null){s.classList.add('hidden');return}
+ s.classList.remove('hidden');
+ s.innerHTML='<div><span>'+T('Coach')+'</span>'+SITE.name+'</div><div><span>'+T('Discipline')+'</span>'+(st.disc?T(st.disc):'–')+'</div><div><span>'+T('Date')+'</span>'+(st.date?label():'–')+'</div><div><span>'+T('Hour')+'</span>'+(st.hour!==null?fmt(st.hour)+' – '+fmt(st.hour+1):'–')+'</div>';
+}
+$('go').onclick=async()=>{
+ const n=$('name').value.trim(),c=$('phone').value.trim();
+ const e=$('err');
+ if(!st.disc)return e.textContent=T('Please choose a discipline.');
+ if(!st.date)return e.textContent=T('Please choose a date.');
+ if(st.hour===null)return e.textContent=T('Please choose an hour.');
+ if(!n){$('name').focus();return e.textContent=T('Please enter your name. It is required to book.')}
+ if(c.replace(/\D/g,'').length<7){$('phone').focus();return e.textContent=T('Please enter a valid phone number (at least 7 digits). It is required to book.')}
+ e.textContent='';
+ $('go').disabled=true;
+ try{
+  const id=st.date+'_'+st.hour,bt=writeBatch(fdb);
+  bt.set(doc(fdb,'sites',slug,'slots',id),{date:st.date,hour:st.hour});
+  bt.set(doc(fdb,'sites',slug,'bookings',id),{disc:st.disc,date:st.date,hour:st.hour,name:n,phone:c,insta:$('insta').value.trim(),note:$('note').value.trim(),status:'pending',created:serverTimestamp()});
+  await bt.commit();
+ }catch(x){$('go').disabled=false;e.textContent=T('That hour was just taken or the booking failed. Please pick another hour.');return}
+ $('ok').innerHTML='<h2>You’re booked!</h2><p>Thanks, '+n.replace(/[<>&]/g,'')+'. Your <b>'+st.disc+'</b> session with '+SITE.name+' is on <b>'+label()+'</b> at <b>'+fmt(st.hour)+'</b>. He will contact you on '+c.replace(/[<>&]/g,'')+'.</p><button class="btn" onclick="location.reload()">Book another</button>';
+ $('ok').classList.remove('hidden');$('go').classList.add('hidden');done={n:n,c:c};showOk();
+ renderSlots();$('ok').scrollIntoView({behavior:'smooth',block:'center'});
+};
+const BG={
+'Private & small-group coaching':'Индивидуални и малки групови тренировки',
+'Train with':'Тренирай с',
+'MMA, Brazilian Jiu-Jitsu, grappling and conditioning.':'MMA, бразилско жиу-жицу, грапълинг и кондиционна подготовка. Избери дисциплина, ден и час – и тепихът е твой.',
+'Book a session':'Запази тренировка',
+'About Mykhailo':'За треньора',
+'About the coach':'За треньора',
+'is an active MMA fighter':'е активен MMA боец, лилав колан по бразилско жиу-жицу и титулуван състезател – от клетката до тепиха на най-големите европейски турнири по жиу-жицу и грапълинг.',
+'Everything he teaches':'Всичко, което преподава, идва от истински състезания: пет национални титли по MMA, три шампионски титли по комбат самбо и медали от едни от най-уважаваните турнири в спорта.',
+'Whether you are stepping':'Независимо дали стъпваш на тепиха за първи път, или се готвиш за следващия си мач, тренираш с човек, който го е правил на най-високо ниво.',
+'Follow on Instagram':'Следвай в Instagram',
+'Bulgarian MMA Champion':'Шампион на България по MMA',
+'Combat Sambo Champion':'Шампион по комбат самбо',
+'IBJJF European medalist':'Медалист от европейско първенство на IBJJF',
+'Medalist':'Медалист',
+'🟣 Purple belt':'🟣 Лилав колан',
+'Brazilian Jiu-Jitsu':'Бразилско жиу-жицу',
+'Discipline':'Дисциплина',
+'What do you want to work on?':'Върху какво искаш да работиш?',
+'Date':'Дата',
+'Open Monday to Saturday':'Отворено от понеделник до събота. Неделя е почивен ден.',
+'Hour':'Час',
+'Your details':'Твоите данни',
+'So Mykhailo can confirm':'За да може Mykhailo да потвърди тренировката.',
+'Full name *':'Име и фамилия *',
+'Phone number *':'Телефонен номер *',
+'Instagram (optional)':'Instagram (по желание)',
+'Experience / notes (optional)':'Опит / бележки (по желание)',
+'Confirm booking':'Потвърди резервацията',
+'Duration':'Продължителност',
+'60 minutes per session':'60 минути на тренировка',
+'Bring':'Донеси',
+'Water, towel, gi':'Вода, кърпа, ги за BJJ (по желание за no-gi)',
+'Cancellation':'Отмяна',
+'Free up to 12 hours':'Безплатна до 12 часа преди тренировката',
+'© Mykhailo Volkov':'© Mykhailo Volkov · Бойни тренировки ·',
+'Grappling':'Грапълинг',
+'Conditioning':'Кондиция',
+'Striking, takedowns and cage work.':'Удари, тейкдауни и работа в клетката.',
+'Gi and no-gi ground game, guard and submissions.':'Борба в партер с ги и без ги, гард и ключове.',
+'Wrestling-based control, scrambles and finishes.':'Контрол, базиран на борба, скрамбли и завършващи хватки.',
+'Strength, cardio and fight-ready endurance.':'Сила, кардио и издръжливост за мач.',
+'Coach':'Треньор',
+'Choose a date first.':'Първо избери дата.',
+'Available hours for ':'Свободни часове за ',
+'. Crossed-out hours are taken.':'. Задраскани часове са заети.',
+'Please choose a discipline.':'Моля, избери дисциплина.',
+'Please choose a date.':'Моля, избери дата.',
+'Please choose an hour.':'Моля, избери час.',
+'Please enter your name. It is required to book.':'Моля, въведи името си. Задължително е за резервация.',
+'Please enter a valid phone number (at least 7 digits). It is required to book.':'Моля, въведи валиден телефонен номер (поне 7 цифри). Задължително е за резервация.',
+'That hour was just taken or the booking failed. Please pick another hour.':'Този час току-що е зает или резервацията не успя. Моля, избери друг час.',
+'· Combat training ·':'· Бойни тренировки ·',
+'Closed days are greyed out':'Затворените дни са затъмнени.',
+'So the coach can confirm':'За да може треньорът да потвърди тренировката.',
+'Book another':'Резервирай отново',
+'Beginner, injuries, goals…':'Начинаещ, контузии, цели…'
+};
+let lang='en',done=null;
+try{const s=localStorage.getItem('volkovLang');lang=s||((navigator.language||'').toLowerCase().startsWith('bg')?'bg':'en')}catch(e){}
+const T=s=>lang==='bg'&&BG[s]?BG[s]:s;
+const LOC=()=>lang==='bg'?'bg-BG':'en-GB';
+const KEYS=Object.keys(BG).sort((a,b)=>b.length-a.length);
+const SKIP='#disc,#days,#slots,#sum,#err,#ok,#slotHint,script';
+function tr(){
+ const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+ const nodes=[];let m;while(m=w.nextNode())nodes.push(m);
+ nodes.forEach(n=>{
+  if(!n.parentElement||n.parentElement.closest(SKIP))return;
+  if(n._o===undefined)n._o=n.nodeValue;
+  const o=n._o,t=o.trim();if(!t)return;
+  const k=KEYS.find(k=>t.startsWith(k));
+  n.nodeValue=(lang==='bg'&&k)?o.replace(t,BG[k]):o;
+ });
+}
+function showOk(){
+ const q=s=>s.replace(/[<>&]/g,'');
+ const nm=q(done.n),ph=q(done.c);
+ $('ok').innerHTML=(lang==='bg'
+  ?'<h2>Резервацията е приета!</h2><p>Благодарим, '+nm+'. Твоята тренировка <b>'+T(st.disc)+'</b> с '+SITE.name+' е на <b>'+label()+'</b> в <b>'+fmt(st.hour)+'</b>. Той ще се свърже с теб на '+ph+'.</p>'
+  :'<h2>You’re booked!</h2><p>Thanks, '+nm+'. Your <b>'+st.disc+'</b> session with Mykhailo Volkov is on <b>'+label()+'</b> at <b>'+fmt(st.hour)+'</b>. He will contact you on '+ph+'.</p>')
+  +'<button class="btn" onclick="location.reload()">'+T('Book another')+'</button>';
+}
+function applyLang(){
+ document.documentElement.lang=lang;
+ document.title=lang==='bg'?SITE.name+' – Резервации за тренировки':SITE.name+' – Combat Training Bookings';
+ tr();
+ $('note').placeholder=T('Beginner, injuries, goals…');
+ document.querySelectorAll('#lang button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.l===lang)));
+ renderDisc();renderDays();renderSlots();sum();
+ if(done)showOk();else $('err').textContent='';
+}
+document.querySelectorAll('#lang button').forEach(b=>b.onclick=()=>{
+ lang=b.dataset.l;
+ try{localStorage.setItem('volkovLang',lang)}catch(e){}
+ applyLang();
+});
+function applySite(){
+ const S=SITE,E=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),g=i=>document.getElementById(i);
+ const TH=Object.assign({},S.accent?{accent:S.accent}:{},S.theme||{}),MAP={accent:'--accent',btnText:'--accent-t',bg:'--bg',surface:'--surface',text:'--text',muted:'--muted',line:'--line',heroBg:'--dark',heroText:'--hero-t'};
+ Object.keys(MAP).forEach(k=>{if(TH[k])document.documentElement.style.setProperty(MAP[k],TH[k])});
+ if(TH.bg||TH.text)document.documentElement.style.colorScheme='normal';
+ DISC=(S.disciplines||[]).map(x=>({id:x.name,d:x.desc||''}));
+ if(S.hours&&S.hours.length)HOURS=S.hours;
+ g('siteName').textContent=S.name;g('tagline').textContent=S.tagline||'';g('fname').textContent=S.name;
+ g('bio').innerHTML=(S.bio||'').split(/\n+/).filter(Boolean).map(p=>'<p>'+E(p)+'</p>').join('');
+ g('medals').innerHTML=(S.achievements||[]).map(a=>{const p=a.split('|');return '<div class="medal"><b>'+E(p[0].trim())+'</b>'+(p[1]?'<span>'+E(p[1].trim())+'</span>':'')+'</div>'}).join('');
+ const ig=S.instagram?'https://www.instagram.com/'+String(S.instagram).replace(/^@/,'').replace(/[^\w.]/g,'')+'/':'';
+ document.querySelectorAll('.igl').forEach(a=>{if(ig)a.href=ig;else a.classList.add('hidden')});
+ g('info').textContent=S.info||'';if(!S.info)g('info').classList.add('hidden');
+ if(!S.bio&&!(S.achievements||[]).length)g('about').classList.add('hidden');
+}
+applySite();
+applyLang();
+</script>
+</body>
+</html>
