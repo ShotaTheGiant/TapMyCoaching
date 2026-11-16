@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner() {
+      return request.auth != null && request.auth.token.email == 'dim.yazovaliyskii@gmail.com';
+    }
+
+    // Site admin emails (only the owner can read or change this list)
+    match /siteAdmins/{site} {
+      allow read, write: if isOwner();
+    }
+
+    // One document per booking site, readable by the public booking page
+    match /sites/{site} {
+      allow read: if true;
+      allow write: if isOwner();
+
+      function isSiteAdmin() {
+        return isOwner() || (request.auth != null
+          && request.auth.token.email in get(/databases/$(database)/documents/siteAdmins/$(site)).data.emails);
+      }
+
+      // Public list of taken hours (no personal data)
+      match /slots/{id} {
+        allow read: if true;
+        allow create: if isSiteAdmin() || (
+          exists(/databases/$(database)/documents/sites/$(site))
+          && request.resource.data.keys().hasOnly(['date', 'hour'])
+          && id == request.resource.data.date + '_' + string(request.resource.data.hour));
+        allow update, delete: if isSiteAdmin();
+      }
+
+      // Full bookings: customers can create, only site admins can read or change
+      match /bookings/{id} {
+        allow create: if exists(/databases/$(database)/documents/sites/$(site))
+          && request.resource.data.keys().hasOnly(['disc','date','hour','name','phone','insta','note','status','created'])
+          && request.resource.data.status == 'pending'
+          && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() < 100
+          && request.resource.data.phone is string && request.resource.data.phone.size() >= 7 && request.resource.data.phone.size() < 40
+          && id == request.resource.data.date + '_' + string(request.resource.data.hour);
+        allow read, update, delete: if isSiteAdmin();
+      }
+    }
+  }
+}

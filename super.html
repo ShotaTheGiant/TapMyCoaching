@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Owner panel – Booking sites</title>
+<style>
+:root{--bg:#f4f1ec;--s:#fff;--t:#16130f;--m:#6b645a;--l:#ddd6ca;--a:#c8201a}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#0f0e0c;--s:#1a1816;--t:#f2ede4;--m:#9a9285;--l:#2e2a25;--a:#e0352d}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:15px/1.45 Arial,sans-serif}
+.w{max-width:900px;margin:0 auto;padding:16px}
+h1,h2{font-family:Impact,sans-serif;font-weight:400;text-transform:uppercase;margin:0 0 10px}
+input,textarea{width:100%;padding:10px;border:2px solid var(--l);border-radius:3px;background:var(--s);color:var(--t);font:inherit;margin:4px 0 12px}
+label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.b{background:var(--a);color:#fff;border:0;padding:9px 14px;border-radius:3px;font:700 14px Arial;cursor:pointer}
+.g{background:transparent;color:var(--t);border:1px solid var(--l)}
+.c{background:var(--s);border:1px solid var(--l);border-left:5px solid var(--a);padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.c small{color:var(--m)}.box{background:var(--s);border:1px solid var(--l);padding:18px;margin:16px 0}
+.hide{display:none!important}.err{color:var(--a);min-height:20px}.row{display:flex;gap:10px;flex-wrap:wrap}.row>div{flex:1;min-width:200px}
+.days label{font-weight:400;text-transform:none;margin-right:10px}.days input{width:auto;margin:0 4px 0 0}
+.hint{color:var(--m);font-size:12px;margin:-8px 0 12px}
+</style>
+</head>
+<body>
+<div class="w">
+<div id="login" class="box" style="max-width:380px;margin:60px auto">
+ <h2>Owner login</h2>
+ <label>Email</label><input id="em" type="email"><label>Password</label><input id="pw" type="password">
+ <div class="err" id="le"></div><button class="b" id="lb">Log in</button>
+</div>
+
+<div id="app" class="hide">
+ <div style="display:flex;justify-content:space-between;align-items:center"><h1>Booking sites</h1><div><button class="b" id="new">+ New site</button> <button class="b g" id="out">Log out</button></div></div>
+ <div id="list"></div>
+
+ <div class="box hide" id="form">
+  <h2 id="ft">New site</h2>
+  <div class="row"><div><label>Site id (used in the link)</label><input id="slug" placeholder="volkov"></div><div><label>Name</label><input id="name" placeholder="Mykhailo Volkov"></div></div>
+  <label>Tagline (under the name)</label><input id="tag" placeholder="MMA, BJJ, grappling and conditioning. Pick a day and an hour.">
+  <label>About text (new line = new paragraph)</label><textarea id="bio" rows="4"></textarea>
+  <label>Achievements (one per line, "Title | description")</label><textarea id="ach" rows="4" placeholder="5× 🥇 | Bulgarian MMA Champion"></textarea>
+  <label>Disciplines (one per line, "Name: description")</label><textarea id="dis" rows="4" placeholder="MMA: Striking, takedowns and cage work."></textarea>
+  <div class="row"><div><label>Hours (24h, comma separated)</label><input id="hrs" value="9,10,11,12,16,17,18,19,20"></div><div><label>Instagram</label><input id="ig" placeholder="@username"></div></div>
+  <label>Colours</label>
+  <div class="hint">Pick a preset or change any colour. Reset puts a colour back to the default.</div>
+  <div style="margin-bottom:10px"><button class="b g" data-p="dark">Dark</button> <button class="b g" data-p="light">Light</button> <button class="b g" data-p="blue">Dark blue</button> <button class="b g" data-p="reset">Reset all</button></div>
+  <div class="row" id="colors"></div><br>
+  <label>Closed days</label><div class="days" id="cd"></div><br>
+  <label>Extra info shown at the bottom (optional)</label><input id="info" placeholder="60 minutes per session · Bring water and a towel">
+  <label>Admin emails for this site (comma separated)</label><input id="adm" placeholder="coach@gmail.com">
+  <div class="hint">Create these users in Firebase Authentication first. They log in to admin.html?c=site-id.</div>
+  <div class="err" id="fe"></div>
+  <button class="b" id="save">Save site</button> <button class="b g" id="cancel">Cancel</button>
+ </div>
+</div>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {getFirestore,collection,doc,getDoc,setDoc,deleteDoc,onSnapshot} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+const app=initializeApp({apiKey:"AIzaSyCtprYxyUHH3mh3rU2hXxdl4E5y-3sccLk",authDomain:"tapmymenu-c411b.firebaseapp.com",projectId:"tapmymenu-c411b",storageBucket:"tapmymenu-c411b.firebasestorage.app",messagingSenderId:"87565740314",appId:"1:87565740314:web:34a91e0b64af026e90a4a3"});
+const auth=getAuth(app),fdb=getFirestore(app);
+const $=i=>document.getElementById(i);
+const E=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+$('cd').innerHTML=DAYS.map((d,i)=>'<label><input type="checkbox" value="'+i+'"'+(i===0?' checked':'')+'>'+d+'</label>').join('');
+let unsub=null,sites=[],theme={};
+const TH=[['accent','Accent / buttons','#c8201a'],['btnText','Button text','#ffffff'],['bg','Page background','#f4f1ec'],['surface','Cards & fields','#ffffff'],['text','Text','#16130f'],['muted','Secondary text','#6b645a'],['line','Borders','#ddd6ca'],['heroBg','Top banner background','#16130f'],['heroText','Top banner text','#f2ede4']];
+const PRE={
+ dark:{accent:'#e0352d',btnText:'#ffffff',bg:'#0f0e0c',surface:'#1a1816',text:'#f2ede4',muted:'#9a9285',line:'#2e2a25',heroBg:'#000000',heroText:'#f2ede4'},
+ light:{accent:'#c8201a',btnText:'#ffffff',bg:'#f4f1ec',surface:'#ffffff',text:'#16130f',muted:'#6b645a',line:'#ddd6ca',heroBg:'#16130f',heroText:'#f2ede4'},
+ blue:{accent:'#2f81f7',btnText:'#ffffff',bg:'#0b1220',surface:'#111b2e',text:'#e6edf7',muted:'#8a9ab5',line:'#22314d',heroBg:'#060b16',heroText:'#e6edf7'}};
+function drawColors(){
+ $('colors').innerHTML=TH.map(t=>'<div style="min-width:150px"><label>'+t[1]+'</label><div style="display:flex;gap:6px;align-items:center"><input type="color" data-k="'+t[0]+'" value="'+(theme[t[0]]||t[2])+'" style="height:38px;padding:2px;margin:4px 0;opacity:'+(theme[t[0]]?1:.45)+'"><button class="b g" data-r="'+t[0]+'" style="padding:6px 8px">Reset</button></div></div>').join('');
+}
+$('colors').oninput=e=>{const k=e.target.dataset.k;if(k){theme[k]=e.target.value;e.target.style.opacity=1}};
+$('colors').onclick=e=>{const k=e.target.dataset.r;if(k){delete theme[k];drawColors()}};
+$('form').addEventListener('click',e=>{const p=e.target.dataset.p;if(p){theme=p==='reset'?{}:Object.assign({},PRE[p]);drawColors()}});
+const base=f=>new URL(f,location.href).href;
+
+function show(u){
+ $('login').classList.toggle('hide',!!u);$('app').classList.toggle('hide',!u);
+ if(u&&!unsub){
+  unsub=onSnapshot(collection(fdb,'sites'),s=>{sites=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>{$('list').innerHTML='<div class="err">'+E(e.code||e.message)+'</div>'});
+ }
+ if(!u&&unsub){unsub();unsub=null}
+}
+function render(){
+ if(!sites.length){$('list').innerHTML='<p style="color:var(--m)">No sites yet. Click "+ New site".</p>';return}
+ $('list').innerHTML=sites.map(s=>{
+  const bl=base('book.html?c='+s.id),al=base('admin.html?c='+s.id);
+  return '<div class="c"><div><b>'+E(s.name)+'</b> <small>/'+E(s.id)+'</small><br><small><a href="'+E(bl)+'" target="_blank">Booking page</a> · <a href="'+E(al)+'" target="_blank">Admin panel</a></small></div>'
+  +'<div><button class="b g" data-a="copy" data-u="'+E(bl)+'">Copy link</button> <button class="b g" data-a="edit" data-id="'+E(s.id)+'">Edit</button> <button class="b g" data-a="del" data-id="'+E(s.id)+'">Delete</button></div></div>';
+ }).join('');
+}
+$('list').onclick=async e=>{
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.a==='copy'){try{await navigator.clipboard.writeText(b.dataset.u);b.textContent='Copied'}catch(x){prompt('Copy this link',b.dataset.u)}}
+ if(b.dataset.a==='edit')edit(b.dataset.id);
+ if(b.dataset.a==='del'&&confirm('Delete this site? Its bookings stay in the database but the site stops working.')){
+  await deleteDoc(doc(fdb,'sites',b.dataset.id));await deleteDoc(doc(fdb,'siteAdmins',b.dataset.id));
+ }
+};
+function fill(s,emails,id){
+ $('ft').textContent=id?'Edit site':'New site';
+ $('slug').value=id||'';$('slug').disabled=!!id;
+ $('name').value=s.name||'';$('tag').value=s.tagline||'';$('bio').value=s.bio||'';
+ $('ach').value=(s.achievements||[]).join('\n');
+ $('dis').value=(s.disciplines||[]).map(x=>x.name+(x.desc?': '+x.desc:'')).join('\n');
+ $('hrs').value=(s.hours||[9,10,11,12,16,17,18,19,20]).join(',');
+ $('ig').value=s.instagram||'';$('info').value=s.info||'';
+ theme=Object.assign({},s.accent?{accent:s.accent}:{},s.theme||{});drawColors();
+ $('adm').value=(emails||[]).join(', ');
+ const cd=s.closedDays||[0];document.querySelectorAll('#cd input').forEach(i=>i.checked=cd.includes(Number(i.value)));
+ $('fe').textContent='';$('form').classList.remove('hide');$('form').scrollIntoView({behavior:'smooth'});
+}
+async function edit(id){
+ const s=(await getDoc(doc(fdb,'sites',id))).data()||{};
+ let em=[];try{em=(await getDoc(doc(fdb,'siteAdmins',id))).data().emails||[]}catch(x){}
+ fill(s,em,id);
+}
+$('new').onclick=()=>fill({},[],'');
+$('cancel').onclick=()=>$('form').classList.add('hide');
+$('save').onclick=async()=>{
+ const slug=$('slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+ const lines=i=>$(i).value.split('\n').map(x=>x.trim()).filter(Boolean);
+ if(!slug||!$('name').value.trim()){$('fe').textContent='Site id and name are required.';return}
+ const hours=$('hrs').value.split(',').map(x=>parseInt(x,10)).filter(x=>x>=0&&x<=23);
+ const dis=lines('dis').map(l=>{const i=l.indexOf(':');return i>0?{name:l.slice(0,i).trim(),desc:l.slice(i+1).trim()}:{name:l,desc:''}});
+ if(!dis.length||!hours.length){$('fe').textContent='Add at least one discipline and one hour.';return}
+ const data={name:$('name').value.trim(),tagline:$('tag').value.trim(),bio:$('bio').value.trim(),achievements:lines('ach'),disciplines:dis,hours,
+  instagram:$('ig').value.trim(),theme,info:$('info').value.trim(),
+  closedDays:[...document.querySelectorAll('#cd input:checked')].map(i=>Number(i.value))};
+ const emails=$('adm').value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);
+ try{
+  await setDoc(doc(fdb,'sites',slug),data);
+  await setDoc(doc(fdb,'siteAdmins',slug),{emails});
+  $('form').classList.add('hide');
+ }catch(e){$('fe').textContent='Could not save: '+(e.code||e.message)}
+};
+$('lb').onclick=async()=>{
+ $('le').textContent='';
+ try{await signInWithEmailAndPassword(auth,$('em').value.trim(),$('pw').value)}catch(e){$('le').textContent='Wrong email or password.'}
+};
+$('pw').onkeydown=e=>{if(e.key==='Enter')$('lb').click()};
+$('out').onclick=()=>signOut(auth);
+onAuthStateChanged(auth,show);
+</script>
+</body>
+</html>
