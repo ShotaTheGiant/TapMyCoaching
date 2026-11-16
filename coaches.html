@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TapMyCoaching – Find your coach</title>
+<style>
+:root{--bg:#f4f1ec;--s:#fff;--t:#16130f;--m:#6b645a;--l:#ddd6ca;--a:#c8201a;--d:#16130f}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#0f0e0c;--s:#1a1816;--t:#f2ede4;--m:#9a9285;--l:#2e2a25;--a:#e0352d;--d:#000}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font:16px/1.5 "Helvetica Neue",Arial,sans-serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+h1,h2,h3{font-family:Impact,"Arial Narrow Bold",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.02em;margin:0}
+.w{max-width:1100px;margin:0 auto;padding:0 16px}
+header{background:var(--d);color:#f2ede4;padding:44px 0 36px;border-bottom:6px solid var(--a)}
+header small{letter-spacing:.2em;text-transform:uppercase;color:#b9b0a1;font-size:12px}
+header h1{font-size:clamp(38px,8vw,72px);line-height:1;margin:10px 0 8px}
+header h1 span{color:var(--a)}
+header p{margin:0;color:#cfc7b9;max-width:520px}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 0 10px;border-bottom:1px solid var(--l)}
+#q{width:100%;padding:13px 14px;border:2px solid var(--l);border-radius:30px;background:var(--s);color:var(--t);font:inherit}
+#q:focus{outline:none;border-color:var(--a)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 0 2px}
+.chip{flex:0 0 auto;border:2px solid var(--l);background:var(--s);color:var(--t);border-radius:30px;padding:7px 16px;font:700 13px Arial;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--a);border-color:var(--a);color:#fff}
+.count{color:var(--m);font-size:14px;margin:18px 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;padding-bottom:50px}
+.card{background:var(--s);border:1px solid var(--l);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:inherit;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.top{height:84px;position:relative}
+.av{position:absolute;left:16px;bottom:-26px;width:60px;height:60px;border-radius:50%;border:4px solid var(--s);display:grid;place-items:center;font:400 26px Impact,sans-serif;color:#fff}
+.body{padding:34px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.body h3{font-size:24px}
+.loc{color:var(--m);font-size:13px;margin-top:-4px}
+.tag{color:var(--m);font-size:14px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tags span{font-size:12px;font-weight:700;border:1px solid var(--l);border-radius:20px;padding:2px 10px}
+.ach{font-size:13px;color:var(--m)}.ach b{color:var(--t)}
+.go{margin-top:auto;display:block;text-align:center;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:14px;padding:11px;border-radius:8px}
+.empty{text-align:center;color:var(--m);padding:60px 0}
+</style>
+</head>
+<body>
+<header><div class="w">
+ <small>Find &amp; book</small>
+ <h1>Tap<span>MyCoaching</span></h1>
+ <p>Browse coaches, pick a discipline, choose a day and hour. Book in under a minute.</p>
+</div></header>
+
+<div class="bar"><div class="w">
+ <input id="q" type="search" placeholder="Search coach, discipline or city…" aria-label="Search">
+ <div class="chips" id="chips"></div>
+</div></div>
+
+<main class="w">
+ <div class="count" id="count">Loading coaches…</div>
+ <div class="grid" id="grid"></div>
+</main>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getFirestore,collection,onSnapshot} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+const fdb=getFirestore(initializeApp({apiKey:"AIzaSyCtprYxyUHH3mh3rU2hXxdl4E5y-3sccLk",authDomain:"tapmymenu-c411b.firebaseapp.com",projectId:"tapmymenu-c411b",storageBucket:"tapmymenu-c411b.firebasestorage.app",messagingSenderId:"87565740314",appId:"1:87565740314:web:34a91e0b64af026e90a4a3"}));
+const $=i=>document.getElementById(i);
+const E=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let all=[],disc='';
+
+onSnapshot(collection(fdb,'sites'),snap=>{
+ all=snap.docs.map(d=>({id:d.id,...d.data()})).filter(s=>s.listed!==false).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+ chips();render();
+},e=>{$('count').textContent='Could not load coaches ('+(e.code||e.message)+').'});
+
+function chips(){
+ const set=[...new Set(all.flatMap(s=>(s.disciplines||[]).map(x=>x.name)))].sort();
+ $('chips').innerHTML=['All'].concat(set).map(n=>'<button class="chip" data-d="'+(n==='All'?'':E(n))+'" aria-pressed="'+((n==='All'?'':n)===disc)+'">'+E(n)+'</button>').join('');
+}
+$('chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;disc=b.dataset.d;chips();render()};
+$('q').oninput=render;
+
+function render(){
+ const q=$('q').value.trim().toLowerCase();
+ const list=all.filter(s=>{
+  if(disc&&!(s.disciplines||[]).some(x=>x.name===disc))return false;
+  if(!q)return true;
+  return [s.name,s.tagline,s.city,(s.disciplines||[]).map(x=>x.name).join(' ')].join(' ').toLowerCase().includes(q);
+ });
+ $('count').textContent=list.length+(list.length===1?' coach':' coaches');
+ if(!list.length){$('grid').innerHTML='<div class="empty" style="grid-column:1/-1">No coaches match your search.</div>';return}
+ $('grid').innerHTML=list.map(s=>{
+  const th=s.theme||{},ac=th.accent||s.accent||'#c8201a',bg=th.heroBg||'#16130f';
+  const init=(s.name||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  const ach=(s.achievements||[]).slice(0,2).map(a=>{const p=a.split('|');return '<b>'+E(p[0].trim())+'</b>'+(p[1]?' '+E(p[1].trim()):'')}).join(' · ');
+  return '<a class="card" href="book.html?c='+encodeURIComponent(s.id)+'">'
+   +'<div class="top" style="background:linear-gradient(135deg,'+E(bg)+','+E(ac)+')"><div class="av" style="background:'+E(ac)+'">'+E(init)+'</div></div>'
+   +'<div class="body"><h3>'+E(s.name)+'</h3>'
+   +(s.city?'<div class="loc">📍 '+E(s.city)+'</div>':'')
+   +(s.tagline?'<div class="tag">'+E(s.tagline)+'</div>':'')
+   +'<div class="tags">'+(s.disciplines||[]).map(x=>'<span>'+E(x.name)+'</span>').join('')+'</div>'
+   +(ach?'<div class="ach">'+ach+'</div>':'')
+   +'<span class="go" style="background:'+E(ac)+'">Book now</span></div></a>';
+ }).join('');
+}
+</script>
+</body>
+</html>
