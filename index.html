@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bookings</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0f0e0c;color:#f2ede4;font:16px Arial,sans-serif;text-align:center}</style>
+</head>
+<body>
+<p id="m">Loading…</p>
+<script>
+// Change this to the site id you want to open at the main address (the id you created in super.html).
+var DEFAULT_SITE = 'volkov';
+var c = new URLSearchParams(location.search).get('c') || DEFAULT_SITE;
+if (c) location.replace('book.html?c=' + encodeURIComponent(c));
+else document.getElementById('m').textContent = 'No booking site selected.';
+</script>
+</body>
+</html>
